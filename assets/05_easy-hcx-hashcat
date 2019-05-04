@@ -1,0 +1,113 @@
+#!/bin/bash
+
+# Arguments from easy-hcx
+save=$1
+wordlist=$2
+
+# Text coloring
+yellow='\033[1;33m'
+red='\033[1;91m'
+nc='\033[0m'
+
+echo
+echo -e "${yellow}This uses hashcat to crack either a WPA capture or a PMKID capture file${nc}"
+echo
+
+echo -e "${yellow}Contents of $save${nc}"
+ls --color=auto $save
+echo
+
+echo -e "${yellow}Choose a directory to see its contents: ${nc}"
+while :
+do
+	read dir;
+	if [ ! -d $save/$dir ]
+	then
+	        echo
+        	echo -e "${red}Directory does not exist. Please try again.${nc}"
+	        echo
+	        echo -e "${yellow}Enter a directory to see the contents: ${nc}"
+	else
+		echo
+	echo -e "${yellow}Contents of $save/$dir${nc}"
+	ls $save/$dir
+	cd $save/$dir
+
+	echo
+	echo -e "${yellow}Enter the filename with .16800 or .hccapx extension to crack: ${nc}"
+	while :
+	do
+		read file
+		echo
+		if [ ! -f $file ];
+		then
+			echo -e "${red}File does not exist. Try again.${nc}"
+			echo -e "${yellow}Enter the filename with extension to crack: ${nc}"
+		else
+			# Determine extension of file
+			filename=$(basename -- "$file")
+			extension="${filename##*.}"
+
+			if [ "$extension" != "16800" ] && [ "$extension" != "hccapx" ]
+			then
+				echo -e "${red}Invalid file extension. Must be a 16800 or hccapx file.${nc}"
+				echo
+				echo -e "${yellow}Enter the filename with extension to crack: ${nc}"
+			else
+				echo -e "${yellow}Contents of $wordlist${nc}"
+				ls $wordlist
+				echo
+				echo -e "${yellow}Enter the wordlist to use. Entering nothing will use all files in $wordlist:  ${nc}"
+				read list
+
+				if [ "$extension" = "16800" ]
+				then
+					echo
+			 		echo -e "${yellow}Running hashcat -m 16800 $file -a 0 -o $save/$dir/$dir.cracked $wordlist/$list{$nc}"
+					echo
+					cmd="hashcat -m 16800 $file -a 0 -o $save/$dir/$dir.cracked $wordlist/"
+					hashcat -m 16800 $file -a 0 -o $save/$dir/$dir.cracked $wordlist/$list 
+				elif [ "$extension" = "hccapx" ]
+				then
+					echo
+					echo -e "${yellow}Running hashcat -m 2500 $file -a 0 -o $save/$dir/$dir.cracked $wordlist/$list${nc}"
+					echo
+					cmd="hashcat -m 2500 $file -a 0 -o $save/$dir/$dir.cracked $wordlist/"
+					hashcat -m 2500 $file -a 0 -o $save/$dir/$dir.cracked $wordlist/$list 
+				fi
+			echo
+			echo -e "${yellow}Enter the wordlist to use, ls to show wordlists or q to quit. Entering nothing will use all files in $wordlist: ${nc}"
+			echo
+
+			while read list2;do
+				if	[ "$list2" = "q" ]
+				then
+					echo
+					echo -e "${yellow}If a password was found, it has been saved to $save/$dir/$dir.cracked. You can also view it with 'hashcat -m 2500/16800 <capture file> --show'${nc}"
+					echo
+					read -p $'\e[91m'"Press enter to continue"$'\e[0m'
+					exit;
+				elif		[ "$list2" = "ls" ]
+				then
+					echo
+					echo -e "${yellow}Contents of $wordlist${nc}"
+					ls $wordlist
+					echo
+					echo -e "${yellow}Enter the wordlist to use, ls to show wordlists or q to quit. Entering nothing will use all files in $wordlist: ${nc}"
+					echo
+				else
+					echo
+					echo -e "${yellow}Running $cmd$list2${nc}"
+					echo
+					$(echo "$cmd$list2")
+					echo
+					echo -e "${yellow}Enter the wordlist to use, ls to show wordlists or q to quit. Entering nothing will use all files in $wordlist ${nc}"
+					echo
+				fi
+				done
+
+			fi
+		fi
+	done
+	fi
+done

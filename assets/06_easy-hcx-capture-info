@@ -1,0 +1,78 @@
+#!/bin/bash
+
+# Argument from easy-hcx
+save=$1
+
+# Text coloring
+yellow='\033[1;33m'
+red='\033[1;91m'
+nc='\033[0m'
+
+echo
+echo -e "${yellow}This shows handshakes captured in a .hccapx file or PMKIDs captured in a .16800 file${nc}"
+
+echo
+echo -e "${yellow}Contents of $save${nc}"
+ls --color=auto $save
+
+echo
+echo -e "${yellow}Enter a directory to see the contents: ${nc}"
+while :
+do
+read dir
+
+if [ ! -d $save/$dir ]
+then
+        echo
+        echo -e "${red}Directory does not exist. Please try again.${nc}"
+        echo
+        echo -e "${yellow}Enter a directory to see the contents: ${nc}"
+else
+
+	echo
+	echo -e "${yellow}Contents of $save/$dir${nc}"
+	ls $save/$dir
+
+	echo
+	echo -e "${yellow}Enter the .hccapx or .16800 filename: ${nc}"
+	while :
+	do
+		read file
+		cd $save/$dir
+		if [ ! -f $file ];
+		then
+			echo -e "${red}File does not exist. Try again.${nc}"
+			echo
+			echo -e "${yellow}Enter the .hccapx or .16800 filename: ${nc}"
+		else
+
+			# Determine extension of file
+			filename=$(basename -- "$file")
+			extension="${filename##*.}"
+
+			if [ "$extension" != "16800" ] && [ "$extension" != "hccapx" ]
+			then 
+				echo
+				echo -e "${red}Invalid file extension. Must be a 16800 or hccapx file.${nc}"
+				echo
+				echo -e "${yellow}Enter the .hccapx or .16800 filename: ${nc}"
+			elif [ "$extension" = "hccapx" ]
+			then
+				echo
+				echo -e "${yellow}Checking $file for handshakes captured${nc}"
+				wlanhcxinfo -i $file -a -e
+				echo
+				read -p $'\e[91m'"Press enter to continue"$'\e[0m'
+				exit 1
+			else [ "$extension" = "16800" ]
+				echo
+				echo -e "${yellow}Checking $file for PMKIDs captured${nc}"
+				awk -F "*" '{ system("echo " $4 " | xxd -r -p; echo" ) }' $file
+				echo
+				read -p $'\e[91m'"Press enter to continue"$'\e[0m'
+				exit 1
+			fi
+		fi
+		done
+fi
+done

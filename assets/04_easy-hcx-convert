@@ -1,0 +1,79 @@
+#!/bin/bash
+
+# Argument from easy-hcx
+save=$1
+
+# Text coloring
+yellow='\033[1;33m'
+red='\033[1;91m'
+nc='\033[0m'
+
+echo
+echo -e "${yellow}This converts a pcapng file to a .16800 file and/or .hccapx file for hashcat.${nc}"
+echo -e "${yellow}A .hccapx file will be created if WPA captures are available and a .16800 file if PMKIDs were captured${nc}"
+
+echo
+echo -e "${yellow}Contents of $save${nc}"
+ls --color=auto $save
+echo
+
+echo -e "${yellow}Enter a directory to see the contents: ${nc}"
+while :
+do
+read dir;
+
+if [ ! -d $save/$dir ]
+then
+	echo
+	echo -e "${red}Directory does not exist. Please try again.${nc}"
+	echo
+	echo -e "${yellow}Enter a directory to see the contents: ${nc}"
+else
+	echo
+	echo -e "${yellow}Contents of $save/$dir${nc}"
+	ls $save/$dir
+	echo
+
+	cd $save/$dir
+
+	echo -e "${yellow}Enter the pcapng filename: ${nc}"
+	while :
+	do
+	read file;
+		if [ ! -f $file ];
+		then
+			echo
+			echo -e "${red}File does not exist. Try again.${nc}"
+			echo -e "${yellow}Enter the pcapng filename: ${nc}"
+		else
+			echo
+			base=$(echo $file | cut -d "." -f 1)
+			echo $base
+			echo -e "${yellow}Converting pcapng to hccapx and 16800: Running hcxpcaptool -z $base.16800 -o $base.hccapx $file${nc}"
+			hcxpcaptool -z $base.16800 -o $base.hccapx $file
+
+			echo
+			echo -e "${yellow}Checking $base.hccapx for handshakes captured${nc}"
+			echo
+			wlanhcxinfo -i $base.hccapx -a -e
+
+			echo
+			if [ -e $file.16800 ]
+			then
+				echo -e "${yellow}Checking $base.16800 file for PMKIDs captured${nc}"
+				echo
+				awk -F "*" '{ system("echo " $4 " | xxd -r -p; echo" ) }' $base.16800
+				echo
+				read -p $'\e[91m'"Press enter to continue"$'\e[0m'
+				exit 1
+			else
+				echo -e "${red}No PMKIDs captured${nc}"
+				echo
+				read -p $'\e[91m'"Press enter to continue"$'\e[0m'
+				exit 1
+			fi
+		fi
+	done
+fi
+done
+

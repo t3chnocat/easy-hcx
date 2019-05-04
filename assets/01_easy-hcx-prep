@@ -1,0 +1,27 @@
+#!/bin/bash
+
+# Argument from easy-hcx
+nic=$1
+
+#Text coloring
+yellow='\033[1;33m'
+nc='\033[0m'
+
+echo
+echo -e "${yellow}Stopping network-manager service...${nc}"
+service network-manager stop
+
+echo
+echo -e "${yellow}Killing wpa_supplicant process...${nc}"
+pkill wpa_supplicant
+
+echo
+echo -e "${yellow}Killing dhclient process...${nc}"
+pkill dhclient
+
+echo 
+echo -e "${yellow}Done${nc}"
+
+echo 
+read -p $'\e[91m'"Press enter to continue"$'\e[0m'
+
