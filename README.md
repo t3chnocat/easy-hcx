@@ -28,7 +28,7 @@ hcxtools, hcxdumptools and hashcat are very deep programs with tons of options s
 User variables are set in easy-hcx.sh. Make sure you look these over.
 
 ### Notes:
-hcxdumptools's documentation states that it randomizes MAC addresses and handles monitor mode on its own. It also states not to use it on logical interfaces and to leave the physical interface in managed mode. 03_easy-hcx-capture-targeted does manually re-enable monitor mode - this is because after using hcxdumptool to get a list of APs, I found that running hcxdumptool again immediately afterwards would fail inconsistently with error messages saying the interface was busy.
+hcxdumptools' documentation states that it randomizes MAC addresses and handles monitor mode on its own. It also states not to use it on logical interfaces and to leave the physical interface in managed mode. 03_easy-hcx-capture-targeted does manually re-enable monitor mode - this is because after using hcxdumptool to get a list of APs, I found that running hcxdumptool again immediately afterwards would fail inconsistently with error messages saying the interface was busy.
 
 ### Link to demo video
 [![Demo Video](http://i3.ytimg.com/vi/zJHD1ttgaxw/hqdefault.jpg)](https://youtu.be/zJHD1ttgaxw)
